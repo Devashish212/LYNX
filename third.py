@@ -1,46 +1,50 @@
-
+# 📦 Step 1: Import Libraries
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-
-# Generate dummy sales data
-np.random.seed(42)
-products = pd.DataFrame({
-    'ProductID': range(1, 6),
-    'Name': ['Pen', 'Notebook', 'Pencil', 'Eraser', 'Marker'],
-    'Category': ['Stationery']*5,
-    'Price': [5, 20, 3, 2, 15]
-})
-
-customers = pd.DataFrame({
-    'CustomerID': range(1, 6),
-    'Name': ['Aarav', 'Dev', 'Sara', 'Ravi', 'Kavya'],
-    'Region': ['North', 'South', 'East', 'West', 'Central']
-})
-
-sales = pd.DataFrame({
-    'SaleID': range(1, 51),
-    'ProductID': np.random.choice(products['ProductID'], 50),
-    'CustomerID': np.random.choice(customers['CustomerID'], 50),
-    'Quantity': np.random.randint(1, 10, 50),
-    'SaleDate': [datetime(2023, 1, 1) + timedelta(days=int(x)) for x in np.random.randint(0, 365, 50)]
-})
-
-# Save to CSV (to import into Excel / SQL)
-products.to_csv('products.csv', index=False)
-customers.to_csv('customers.csv', index=False)
-sales.to_csv('sales.csv', index=False)
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 
-# Group sales monthly
-sales['Month'] = sales['SaleDate'].dt.to_period('M').astype(str)
-monthly_sales = sales.groupby('Month')['Quantity'].sum().reset_index()
+# 📊 Step 2: Prepare the Data
+data = {
+    'Hours_Studied': [1, 2, 3, 4, 5],
+    'Marks': [50, 55, 65, 70, 80]
+}
+df = pd.DataFrame(data)
 
-# Forecast future sales
-monthly_sales['MonthNum'] = range(len(monthly_sales))
+# 🧠 Step 3: Separate Inputs (X) and Outputs (y)
+X = df[['Hours_Studied']]  # input feature (as DataFrame)
+y = df['Marks']            # output label (as Series)
+
+# ✂️ Step 4: Split the Data (80% Train, 20% Test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+
+# 🛠️ Step 5: Train the Model
 model = LinearRegression()
-model.fit(monthly_sales[['MonthNum']], monthly_sales['Quantity'])
+model.fit(X_train, y_train)
 
-next_month = [[len(monthly_sales)]]
-prediction = model.predict(next_month)
-print(f"Predicted sales next month: {int(prediction[0])}")
+# 📈 Step 6: View What the Model Learned
+print("Slope (m):", model.coef_[0])
+print("Intercept (b):", model.intercept_)
+
+# 🔮 Step 7: Predict on Test Data
+y_pred = model.predict(X_test)
+print("Predicted Marks:", y_pred)
+print("Actual Marks   :", y_test.values)
+
+# 📏 Step 8: Evaluate the Model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("Mean Squared Error (MSE):", mse)
+print("R² Score (Accuracy):", r2)
+
+# 📊 Step 9: Plot the Result
+plt.scatter(X, y, color='blue', label='Actual Data')
+plt.plot(X, model.predict(X), color='red', label='Regression Line')
+plt.xlabel('Hours Studied')
+plt.ylabel('Marks')
+plt.title('Hours vs Marks - Linear Regression')
+plt.legend()
+plt.grid(True)
+plt.show()
